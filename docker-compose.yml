@@ -1,0 +1,32 @@
+services:
+    java:
+        build: ./docker/java
+        ports:
+            - 8080:8080
+        tty: true
+        volumes:
+            - ./server/src:/usr/app/src:cached
+        networks:
+            - my_network
+
+    mysql:
+        build: ./docker/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: bulletin_board
+            MYSQL_USER: user
+            MYSQL_PASSWORD: password
+        ports: 
+            - 3306:3306
+        volumes:
+            - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+            - mysql_data:/var/lib/mysql
+        networks:
+            - my_network
+
+
+volumes:
+    mysql_data:
+
+networks:
+    my_network:
