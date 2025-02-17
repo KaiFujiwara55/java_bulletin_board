@@ -7,7 +7,7 @@ import util.DBconnection;
 
 public class UserDAO {
     // ユーザー情報を取得するメソッド
-    public ArrayList<User> getAllUser() {
+    public static ArrayList<User> getAllUser() {
         Connection conn = DBconnection.getConn();
         
         String sql = "SELECT * FROM users WHERE is_deleted = 0";
@@ -30,7 +30,7 @@ public class UserDAO {
     }
 
     // ユーザ登録するメソッド
-    public void registerUser(String name, String crypted_password) {
+    public static void registerUser(String name, String crypted_password) {
         Connection conn = DBconnection.getConn();
         
         String sql = "INSERT INTO users (name, crypted_password) VALUES (?, ?)";
@@ -46,8 +46,43 @@ public class UserDAO {
         }
     }
 
+    // ユーザが存在するか確認するメソッド
+    public static boolean checkUser(String name) {
+        Connection conn = DBconnection.getConn();
+        
+        String sql = "SELECT COUNT(*) FROM users WHERE name = ? AND is_deleted = 0";
+        try {
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, name);
+            ResultSet rs = pstmt.executeQuery();
+            return rs.getInt(1) == 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            DBconnection.closeConn(conn);
+            return false;
+        }
+    }
+
+    //  パスワードが正しいか確認するメソッド
+    public static boolean checkPassword(String name, String crypted_password) {
+        Connection conn = DBconnection.getConn();
+        
+        String sql = "SELECT COUNT(*) FROM users WHERE name = ? AND crypted_password = ? AND is_deleted = 0";
+        try {
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, name);
+            pstmt.setString(2, crypted_password);
+            ResultSet rs = pstmt.executeQuery();
+            return rs.getInt(1) == 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            DBconnection.closeConn(conn);
+            return false;
+        }
+    }
+
     //　ユーザを論理削除するメソッド
-    public void deleteUser(String name, String crypted_password) {
+    public static void deleteUser(String name, String crypted_password) {
         Connection conn = DBconnection.getConn();
         
         String sql = "UPDATE users SET is_deleted = 1 WHERE name = ? AND crypted_password = ?";
@@ -64,7 +99,7 @@ public class UserDAO {
     }
 
     // パスワードを更新するメソッド
-    public void updatePassword(User user, String new_crypted_password) {
+    public static void updatePassword(User user, String new_crypted_password) {
         Connection conn = DBconnection.getConn();
         
         String sql = "UPDATE users SET crypted_password = ? WHERE id = ?";
@@ -81,7 +116,7 @@ public class UserDAO {
     }
 
     // プロフィールを更新するメソッド
-    public void updateProfile(User user, String new_profile) {
+    public static void updateProfile(User user, String new_profile) {
         Connection conn = DBconnection.getConn();
         
         String sql = "UPDATE users SET profile = ? WHERE id = ?";
