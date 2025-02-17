@@ -1,3 +1,5 @@
+package model;
+
 public class Post {
     private int id;
     private String user_name;
