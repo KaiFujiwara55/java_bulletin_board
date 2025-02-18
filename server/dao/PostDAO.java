@@ -8,7 +8,7 @@ import util.DBconnection;
 
 public class PostDAO {
     // 投稿を取得するメソッド
-    public ArrayList<Post> getAllPost() {
+    public static ArrayList<Post> getAllPost() {
         Connection conn = DBconnection.getConn();
         
         String sql = "SELECT posts.id, users.name, posts.content, like_count.count  FROM posts\n" + 
@@ -34,7 +34,7 @@ public class PostDAO {
     }
 
     // 投稿を登録するメソッド
-    public void postContent(User user, String content) {
+    public static void postContent(User user, String content) {
         Connection conn = DBconnection.getConn();
         
         String sql = "INSERT INTO posts (user_id, content) VALUES (?, ?)";
@@ -60,7 +60,7 @@ public class PostDAO {
     }
 
     // 投稿を論理削除するメソッド
-    public void deletePost(Post post) {
+    public static void deletePost(Post post) {
         Connection conn = DBconnection.getConn();
         
         String sql = "UPDATE posts SET is_deleted = 1 WHERE id = ?";
@@ -76,7 +76,7 @@ public class PostDAO {
     }
 
     // 投稿をいいねするメソッド
-    public void likePost(Post post) {
+    public static void likePost(Post post) {
         Connection conn = DBconnection.getConn();
         
         String sql = "UPDATE like_count SET count = count + 1 WHERE post_id = ?";
