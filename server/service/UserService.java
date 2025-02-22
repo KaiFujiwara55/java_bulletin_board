@@ -3,6 +3,7 @@ package service;
 import java.util.*;
 import org.mindrot.jbcrypt.BCrypt;
 import model.User;
+import session.Session;
 import dao.UserDAO;
 import util.InputHandler;
 
@@ -57,13 +58,28 @@ public class UserService {
     }
 
     // ログイン処理(sessionとかを考える)
-    public static void login() {
+    public static void login(Session session) {
         InputHandler.formatKeyword("ログイン");
+        String username = InputHandler.inputString("ユーザ名");
+        if (username.isEmpty()) { return; }
+        String password = InputHandler.inputString("パスワード");
+        if (password.isEmpty()) { return; }
+        if (UserDAO.checkPassword(username, BCrypt.hashpw(password, BCrypt.gensalt()))) {
+            session.login(UserDAO.getUser(username, BCrypt.hashpw(password, BCrypt.gensalt())));
+            System.out.println(username + "でログインしました。");
+        } else {
+            System.out.println("ユーザ名またはパスワードが異なります。");
+        }
     }
 
     // ログアウト処理(sessionとかを考える)
-    public static void logout() {
+    public static void logout(Session session) {
         InputHandler.formatKeyword("ログアウト");
+        String command = InputHandler.inputString("ログアウトしますか？(y/n)");
+        if (command.equals("y")) {
+            session.logout();
+            System.out.println("ログアウトしました。");
+        }
     }
 
     // プロフィール表示

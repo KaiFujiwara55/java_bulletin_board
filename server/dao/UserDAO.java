@@ -29,6 +29,31 @@ public class UserDAO {
         }
     }
 
+    // 特定のユーザー情報を取得するメソッド
+    public static User getUser(String name, String crypted_password) {
+        Connection conn = DBconnection.getConn();
+        
+        String sql = "SELECT * FROM users WHERE name = ? AND crypted_password = ? AND is_deleted = 0";
+        try {
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, name);
+            pstmt.setString(2, crypted_password);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                User user = new User(rs.getInt("id"), rs.getString("name"), rs.getString("crypted_password"), rs.getString("profile"));
+                DBconnection.closeConn(conn);
+                return user;
+            } else {
+                DBconnection.closeConn(conn);
+                return null;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            DBconnection.closeConn(conn);
+            return null;
+        }
+    }
+
     // ユーザ登録するメソッド
     public static void registerUser(String name, String crypted_password) {
         Connection conn = DBconnection.getConn();
