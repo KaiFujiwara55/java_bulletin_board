@@ -19,6 +19,31 @@ public class PostService {
 
     // 投稿一覧表示
     public static void lsPost() {
+        // 投稿処理
+        final String FILTER_COMMAND = "filter";
+        final String LIKE_COMMAND = "like";
+        final String SHOW_PROFILE_COMMAND = "profile";
+        
+        String command = InputHandler.inputString("コマンドを入力("+FILTER_COMMAND+", "+LIKE_COMMAND+", "+SHOW_PROFILE_COMMAND+")");
+        if (command.isEmpty()) { return; }
+        switch (command) {
+            case FILTER_COMMAND:
+                filterPost();
+                break;
+            case LIKE_COMMAND:
+                likePost();
+                break;
+            case SHOW_PROFILE_COMMAND:
+                UserService.showProfile();
+                break;
+            default:
+                InputHandler.forbiddenString(command);
+        }
+        lsPost();
+    }
+
+    // 投稿一覧
+    public static void lsAllPost() {
         InputHandler.formatKeyword("投稿一覧");
 
         ArrayList<Post> posts = PostDAO.getAllPost();
@@ -30,15 +55,14 @@ public class PostService {
         }
     }
 
-    // 投稿一覧フィルタ表示
-    public static void fileterPost() {
+    // フィルタ処理
+    public static void filterPost() {
         final String AUTHER_FILTER_COMMAND = "author";
         final String LIKE_FILTER_COMMAND = "like";
         final String CONTENT_FILTER_COMMAND = "content";
-
+        
         String command = InputHandler.inputString("コマンドを入力("+AUTHER_FILTER_COMMAND+", "+LIKE_FILTER_COMMAND+", "+CONTENT_FILTER_COMMAND+")");
         if (command.isEmpty()) { return; }
-
         switch (command) {
             case AUTHER_FILTER_COMMAND:
                 fileterPostByAuthor();
@@ -50,7 +74,8 @@ public class PostService {
                 filterPostByContent();
                 break;
             default:
-                System.out.println("不正なコマンドです: " + command);
+                InputHandler.forbiddenString(command);
+                filterPost();
         }
     }
 
@@ -99,6 +124,31 @@ public class PostService {
                 System.out.println("投稿内容: " + post.getContent());
                 System.out.println("いいね: " + post.getLikeCount());
             }
+        }
+    }
+
+    // いいね処理
+    public static void likePost() {
+        ArrayList<Post> posts = PostDAO.getAllPost();
+
+        while (true) {
+            String postId = InputHandler.inputString("いいねする投稿番号");
+            if (postId.isEmpty()) { return; }
+            try {
+                Integer.parseInt(postId);
+            } catch (NumberFormatException e) {
+                System.out.println("投稿番号は数値で入力してください。");
+                continue;
+            }
+
+            for (Post post : posts) {
+                if (post.getId() == Integer.parseInt(postId)) {
+                    PostDAO.likePost(post);
+                    System.out.println("いいねしました。");
+                    return;
+                }
+            }
+            System.out.println("存在する投稿番号を入力してください。");
         }
     }
 

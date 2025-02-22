@@ -30,28 +30,24 @@ public class UserDAO {
     }
 
     // 特定のユーザー情報を取得するメソッド
-    public static User getUser(String name, String crypted_password) {
+    public static User getUser(String name) {
         Connection conn = DBconnection.getConn();
         
-        String sql = "SELECT * FROM users WHERE name = ? AND crypted_password = ? AND is_deleted = 0";
+        String sql = "SELECT * FROM users WHERE name = ? AND is_deleted = 0";
         try {
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, name);
-            pstmt.setString(2, crypted_password);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
                 User user = new User(rs.getInt("id"), rs.getString("name"), rs.getString("crypted_password"), rs.getString("profile"));
-                DBconnection.closeConn(conn);
                 return user;
-            } else {
-                DBconnection.closeConn(conn);
-                return null;
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
             DBconnection.closeConn(conn);
-            return null;
         }
+        return null;
     }
 
     // ユーザ登録するメソッド
@@ -80,12 +76,15 @@ public class UserDAO {
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, name);
             ResultSet rs = pstmt.executeQuery();
-            return rs.getInt(1) == 0;
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
             DBconnection.closeConn(conn);
-            return false;
         }
+        return false;
     }
 
     //  パスワードが正しいか確認するメソッド
@@ -93,28 +92,33 @@ public class UserDAO {
         Connection conn = DBconnection.getConn();
         
         String sql = "SELECT COUNT(*) FROM users WHERE name = ? AND crypted_password = ? AND is_deleted = 0";
+        System.out.println(sql);
         try {
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, name);
             pstmt.setString(2, crypted_password);
+            System.out.println(pstmt);
             ResultSet rs = pstmt.executeQuery();
-            return rs.getInt(1) == 0;
+            if (rs.next()) {
+                System.out.println(rs.getInt(1));
+                return rs.getInt(1) == 1;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
             DBconnection.closeConn(conn);
-            return false;
         }
+        return false;
     }
 
     //　ユーザを論理削除するメソッド
-    public static void deleteUser(String name, String crypted_password) {
+    public static void deleteUser(int user_id) {
         Connection conn = DBconnection.getConn();
         
-        String sql = "UPDATE users SET is_deleted = 1 WHERE name = ? AND crypted_password = ?";
+        String sql = "UPDATE users SET is_deleted = 1 WHERE id = ?";
         try {
             PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, name);
-            pstmt.setString(2, crypted_password);
+            pstmt.setInt(1, user_id);
             pstmt.executeUpdate();
             DBconnection.closeConn(conn);
         } catch (SQLException e) {

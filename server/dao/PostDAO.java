@@ -13,7 +13,7 @@ public class PostDAO {
         
         String sql = "SELECT posts.id, users.name, posts.content, like_count.count  FROM posts\n" + 
         "LEFT JOIN users ON posts.user_id = users.id\n" +
-        "LEFT JOIN like_counts ON posts.id = like_count.post_id\n" +
+        "LEFT JOIN like_count ON posts.id = like_count.post_id\n" +
         "WHERE posts.is_deleted = 0";
         try {
             Statement stmt = conn.createStatement();
@@ -21,7 +21,7 @@ public class PostDAO {
 
             ArrayList<Post> posts = new ArrayList<Post>();
             while (rs.next()) {
-                Post post = new Post(rs.getInt("id"), rs.getString("name"), rs.getString("content"), rs.getInt("like_count"));
+                Post post = new Post(rs.getInt("id"), rs.getString("name"), rs.getString("content"), rs.getInt("count"));
                 posts.add(post);
             }
             DBconnection.closeConn(conn);
@@ -45,16 +45,7 @@ public class PostDAO {
             pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
-        }
-
-        sql = "INSERT INTO like_count (post_id) VALUES (?)";
-        try {
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setInt(1, user.getId());
-            pstmt.executeUpdate();
-            DBconnection.closeConn(conn);
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } finally {
             DBconnection.closeConn(conn);
         }
     }

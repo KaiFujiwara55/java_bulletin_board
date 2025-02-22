@@ -13,7 +13,7 @@ public class UserService {
         InputHandler.formatKeyword("ユーザ作成");
 
         String username = InputHandler.inputString("ユーザ名");
-        if (UserDAO.checkUser(username)) {
+        if (!UserDAO.checkUser(username)) {
             String password = InputHandler.inputString("パスワード");
             if (password.isEmpty()) { return; }
             UserDAO.registerUser(username, BCrypt.hashpw(password, BCrypt.gensalt()));
@@ -31,11 +31,13 @@ public class UserService {
             if (UserDAO.checkUser(username)) {
                 String password = InputHandler.inputString("削除するユーザのパスワード");
                 if (password.isEmpty()) { return; }
-                if (UserDAO.checkPassword(username, BCrypt.hashpw(password, BCrypt.gensalt()))) {
+                User user = UserDAO.getUser(username);
+                if (BCrypt.checkpw(password, user.getCryptedPassword())) {
                     System.out.println("次のユーザを削除します: " + username);
                     if (InputHandler.inputString("本当によろしいですか？(y/n)").equals("y")) {
-                        UserDAO.deleteUser(username, BCrypt.hashpw(password, BCrypt.gensalt()));
+                        UserDAO.deleteUser(user.getId());
                         System.out.println("ユーザを削除されました。");
+                        return;
                     }
                 } else {
                     System.out.println("パスワードが違います。");
@@ -57,22 +59,24 @@ public class UserService {
         }
     }
 
-    // ログイン処理(sessionとかを考える)
+    // ログイン処理
     public static void login(Session session) {
         InputHandler.formatKeyword("ログイン");
         String username = InputHandler.inputString("ユーザ名");
         if (username.isEmpty()) { return; }
         String password = InputHandler.inputString("パスワード");
         if (password.isEmpty()) { return; }
-        if (UserDAO.checkPassword(username, BCrypt.hashpw(password, BCrypt.gensalt()))) {
-            session.login(UserDAO.getUser(username, BCrypt.hashpw(password, BCrypt.gensalt())));
+        User user = UserDAO.getUser(username);
+        if (BCrypt.checkpw(password, user.getCryptedPassword())) {
+            session.login(user);
             System.out.println(username + "でログインしました。");
+            return;
         } else {
             System.out.println("ユーザ名またはパスワードが異なります。");
         }
     }
 
-    // ログアウト処理(sessionとかを考える)
+    // ログアウト処理
     public static void logout(Session session) {
         InputHandler.formatKeyword("ログアウト");
         String command = InputHandler.inputString("ログアウトしますか？(y/n)");
@@ -83,14 +87,19 @@ public class UserService {
     }
 
     // プロフィール表示
-    public static void showProfile(String username) {
+    public static void showProfile() {
         ArrayList<User> users = UserDAO.getAllUser();
-        for (User user :users) {
-            if (user.getName().equals(username)) {
-                System.out.println("ユーザ名: " + user.getName());
-                System.out.println("プロフィール: " + user.getProfile());
-                return;
+        
+        while (true) {
+            String username = InputHandler.inputString("プロフィールを表示する投稿者名");
+            for (User user :users) {
+                if (user.getName().equals(username)) {
+                    System.out.println("ユーザ名: " + user.getName());
+                    System.out.println("プロフィール: " + user.getProfile());
+                    return;
+                }
             }
+            System.out.println("入力された投稿者は存在しません。");
         }
     }
 
@@ -110,8 +119,9 @@ public class UserService {
                 case EDITPROFILE_COMMAND:
                     editProfile(user);
                     break;
+                default:
+                    InputHandler.forbiddenString(input_command);
             }
-            InputHandler.forbiddenString(input_command);
         }
     }
 
@@ -128,11 +138,12 @@ public class UserService {
         while (true) {
             String password = InputHandler.inputString("現在のパスワードを入力");
             if (password.isEmpty()) { return; }
-            if (user.getCryptedPassword().equals(BCrypt.hashpw(password, BCrypt.gensalt()))) {
+            if (BCrypt.checkpw(password, user.getCryptedPassword())) {
                 String new_password = InputHandler.inputString("新しいパスワードを入力");
                 if (new_password.isEmpty()) { return; }
                 UserDAO.updatePassword(user, BCrypt.hashpw(new_password, BCrypt.gensalt()));
                 System.out.println("パスワードを変更されました。");
+                return;
             } else {
                 System.out.println("パスワードが違います。");
             }
@@ -148,9 +159,10 @@ public class UserService {
 
         String password = InputHandler.inputString("パスワードを入力");
         if (password.isEmpty()) { return; }
-        if (user.getCryptedPassword().equals(BCrypt.hashpw(password, BCrypt.gensalt()))) {
+        if (BCrypt.checkpw(password, user.getCryptedPassword())) {
             UserDAO.updateProfile(user, new_profile);
             System.out.println("プロフィールが変更されました。");
+            return;
         } else {
             System.out.println("パスワードが違います。");
         }

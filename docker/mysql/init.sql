@@ -29,3 +29,15 @@ CREATE TABLE IF NOT EXISTS like_count (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (post_id) REFERENCES posts (id)
 );
+
+DELIMITER $$
+
+CREATE TRIGGER after_post_insert
+AFTER INSERT ON posts
+FOR EACH ROW
+BEGIN
+    INSERT INTO like_count (post_id, count)
+    VALUES (NEW.id, 0);
+END $$
+
+DELIMITER ;

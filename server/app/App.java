@@ -39,6 +39,9 @@ public class App {
                     case LS_USER_COMMAND:
                         UserService.showAllUser();
                         break;
+                    case DELETE_COMMAND:
+                        UserService.delete();
+                        break;
                     case START_MENU_HELP_COMMAND:
                         helpStartMenu();
                         break;
@@ -52,6 +55,7 @@ public class App {
                 String command = userMenu();
                 switch (command) {
                     case LS_POST_COMMAND:
+                        PostService.lsAllPost();
                         PostService.lsPost();
                         break;
                     case POST_COMMAND:
@@ -97,7 +101,7 @@ public class App {
 
     private static String userMenu() {
         InputHandler.formatKeyword("掲示板:マイメニュー");
-        String command = InputHandler.inputString("コマンドを入力 ("+LOGOUT_COMMAND+", "+LS_USER_COMMAND+", "+POST_COMMAND+", "+LS_POST_COMMAND+", "+LS_MY_POST_COMMAND+", "+LS_MY_INFO_COMMAND+", "+USER_MENU_HELP_COMMAND+", "+EXIT_COMMAND+")");
+        String command = InputHandler.inputString("コマンドを入力 ("+LOGOUT_COMMAND+", "+LS_POST_COMMAND+", "+POST_COMMAND+", "+LS_MY_POST_COMMAND+", "+LS_MY_INFO_COMMAND+", "+USER_MENU_HELP_COMMAND+", "+EXIT_COMMAND+")");
         return command;
     }
 
